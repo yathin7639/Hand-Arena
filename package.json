@@ -1,0 +1,24 @@
+{
+  "name": "hand-cricket-multiplayer",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "node scripts/dev.js",
+    "dev:server": "npm run dev -w server",
+    "dev:client": "npm run dev -w client",
+    "build": "npm run build -w shared && npm run build -w server && npm run build -w client",
+    "typecheck": "npm run build -w shared && npm run typecheck -w server && npm run typecheck -w client",
+    "preview": "node scripts/preview.js",
+    "start": "npm run start -w server",
+    "tunnel": "docker run --rm cloudflare/cloudflared tunnel --url http://host.docker.internal:3000"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

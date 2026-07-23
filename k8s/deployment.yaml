@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hand-cricket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hand-cricket
+  template:
+    metadata:
+      labels:
+        app: hand-cricket
+    spec:
+      containers:
+        - name: hand-cricket
+          image: hand-cricket:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              value: "3000"
+            - name: CLIENT_DIST
+              value: /app/client/dist
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 20

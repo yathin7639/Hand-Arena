@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hand-cricket
+spec:
+  type: ClusterIP
+  selector:
+    app: hand-cricket
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
