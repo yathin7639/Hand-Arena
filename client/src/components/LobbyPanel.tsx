@@ -615,7 +615,7 @@ export function LobbyPanel({
             <>
               {isHost ? (
                 <div className="flex flex-col sm:flex-row gap-4 w-full">
-                  {room.mode === "team" && (
+                  {(room.mode === "team" || room.mode === "crazy" || room.mode === "bluff") && (
                     <Button
                       onClick={onRandomizeTeams}
                       variant="secondary"

@@ -454,8 +454,8 @@ export class Room {
 
   assignTeam(playerId: string, targetPlayerId: string, team: PlayerTeam): void {
     this.requirePhase("lobby");
-    if (this.mode !== "team") {
-      throw new Error("Team reassignment is only allowed in Team Battle mode");
+    if (this.mode === "series") {
+      throw new Error("Team reassignment is not allowed in Series mode");
     }
 
     const actor = this.requirePlayer(playerId);
@@ -495,8 +495,8 @@ export class Room {
     if (playerId !== this.hostId) {
       throw new Error("Only the host can shuffle teams");
     }
-    if (this.mode !== "team") {
-      throw new Error("Shuffle teams is only allowed in Team Battle mode");
+    if (this.mode === "series") {
+      throw new Error("Shuffle teams is not allowed in Series mode");
     }
 
     const jokerPlayer = this.jokerPlayerId ? this.players.get(this.jokerPlayerId) : null;
