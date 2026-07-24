@@ -10,8 +10,8 @@ import type {
   TossSide,
   ChatMessage
 } from "@hand-cricket/shared";
-import { loadSession, saveSession } from "../lib/session";
-import { SOCKET_URL } from "../config";
+import { loadSession, saveSession } from "../lib/session.js";
+import { SOCKET_URL } from "../config.js";
 
 interface GameSocket {
   connected: boolean;
@@ -21,18 +21,18 @@ interface GameSocket {
 }
 
 export function useSocketGame() {
-  const [socket] = useState<GameSocket>(
-    () =>
-      io(SOCKET_URL, {
-        autoConnect: true,
-        transports: ["websocket", "polling"],
-        reconnection: true,
-        reconnectionAttempts: Infinity,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        timeout: 20000
-      }) as unknown as GameSocket
-  );
+  const [socket] = useState<GameSocket>(() => {
+    console.log("[HandArena] Connecting Socket.IO to backend:", SOCKET_URL);
+    return io(SOCKET_URL, {
+      autoConnect: true,
+      transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 20000
+    }) as unknown as GameSocket;
+  });
   const [session, setSession] = useState<ClientSession>(() => loadSession());
   const [room, setRoom] = useState<RoomView>();
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
