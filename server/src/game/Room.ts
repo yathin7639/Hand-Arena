@@ -21,6 +21,7 @@ import type {
 import type { ServerPlayer } from "../types/runtime.js";
 import { MatchEngine } from "./MatchEngine.js";
 import { TournamentEngine } from "./TournamentEngine.js";
+import { logger } from "../utils/logger.js";
 
 const DEFAULT_BRAND = (logo: string, color: string): TeamBrand => ({
   logo,
@@ -119,13 +120,41 @@ export class Room {
     this.addPlayer(host);
   }
 
+  getHostId(): string {
+    return this.hostId;
+  }
+
+  isHost(playerId: string): boolean {
+    return this.hostId === playerId;
+  }
+
+  getPlayer(playerId: string): ServerPlayer | undefined {
+    return this.players.get(playerId);
+  }
+
+  getPlayers(): IterableIterator<ServerPlayer> {
+    return this.players.values();
+  }
+
+  getTeamsList(): Team[] {
+    return this.teamsList;
+  }
+
+  returnToLobby(playerId: string): void {
+    if (playerId !== this.hostId) {
+      throw new Error("Only the host can return players to the lobby");
+    }
+    this.resetForRematch();
+    this.addSystemMessage("Returned to lobby.");
+  }
+
   addPlayer(player: Omit<ServerPlayer, "slot" | "connected" | "ready" | "team" | "isCaptain">): ServerPlayer {
     const existing = this.players.get(player.id);
     if (existing) {
       existing.connected = true;
       existing.socketId = player.socketId;
       existing.name = player.name;
-      console.log(`[LOBBY ACTION] Reconnect: ${existing.name} reconnected`);
+      logger.info("Room", `[LOBBY ACTION] Reconnect: ${existing.name} reconnected`);
       this.addSystemMessage(`${existing.name} reconnected.`);
       this.rebuildTeams();
       this.validateState("Reconnect Player");

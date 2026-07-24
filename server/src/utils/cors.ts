@@ -1,3 +1,5 @@
+import { config } from "../config/env.js";
+
 const allowedOriginsRegex = [
   /^http:\/\/localhost(:\d+)?$/,
   /^http:\/\/127\.0\.0\.1(:\d+)?$/,
@@ -26,8 +28,7 @@ export function isOriginAllowed(origin: string | undefined, hostHeader?: string 
   }
 
   // Allow domains configured in CORS_ORIGIN env var
-  const envOrigins = process.env.CORS_ORIGIN?.split(",").map((o) => o.trim()).filter(Boolean) || [];
-  if (envOrigins.includes(origin)) {
+  if (config.corsOrigins.includes(origin)) {
     return true;
   }
 

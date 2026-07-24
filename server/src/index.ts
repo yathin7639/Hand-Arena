@@ -1,12 +1,13 @@
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 import type { ClientToServerEvents, ServerToClientEvents } from "@hand-cricket/shared";
+import { config } from "./config/env.js";
 import { SocketController } from "./controllers/SocketController.js";
 import { GameManager } from "./game/GameManager.js";
 import { createApp } from "./http/createApp.js";
 import { isOriginAllowed } from "./utils/cors.js";
+import { logger } from "./utils/logger.js";
 
-const port = Number(process.env.PORT ?? 3000);
 const app = createApp();
 const httpServer = createServer(app);
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
@@ -31,20 +32,42 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   }
 });
 
-new SocketController(io, new GameManager()).register();
+const gameManager = new GameManager();
+new SocketController(io, gameManager).register();
 
-const detectEnvironment = () => {
-  if (process.env.NODE_ENV === "production") {
-    if (process.env.CORS_ORIGIN?.includes("trycloudflare.com")) {
-      return "Cloudflare Tunnel (Production)";
-    }
-    return "Production / VPS";
-  }
-  return "Development";
+httpServer.listen(config.port, "0.0.0.0", () => {
+  logger.info("Server", `Environment: ${config.env}`);
+  logger.info("Server", `Hand Cricket production backend listening on 0.0.0.0:${config.port}`);
+});
+
+// Graceful Shutdown Handler
+const gracefulShutdown = (signal: string) => {
+  logger.info("Server", `Received ${signal}. Shutting down gracefully...`);
+  
+  // Save current room state
+  gameManager.saveState();
+
+  // Close socket server and HTTP server
+  io.close(() => {
+    logger.info("Server", "Socket.IO connections closed.");
+    httpServer.close(() => {
+      logger.info("Server", "HTTP server closed.");
+      process.exit(0);
+    });
+  });
+
+  // Force close after 10s if graceful shutdown hangs
+  setTimeout(() => {
+    logger.error("Server", "Forcing shutdown after timeout.");
+    process.exit(1);
+  }, 10_000);
 };
 
-httpServer.listen(port, "0.0.0.0", () => {
-  const env = detectEnvironment();
-  console.log(`[Server Started] Environment: ${env}`);
-  console.log(`[Server Started] Hand Cricket server listening on 0.0.0.0:${port}`);
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("uncaughtException", (error) => {
+  logger.error("Server", "Uncaught Exception", error);
+});
+process.on("unhandledRejection", (reason) => {
+  logger.error("Server", "Unhandled Rejection", reason);
 });
