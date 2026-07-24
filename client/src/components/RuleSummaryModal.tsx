@@ -9,8 +9,9 @@ interface RuleSummaryModalProps {
 
 export function RuleSummaryModal({ room, onReady }: RuleSummaryModalProps) {
   const isCrazy = room.mode === "crazy";
-  const isT10 = room.mode === "t10";
+  const isBluff = room.mode === "bluff";
   const rules = room.crazyRules;
+  const bluffConfig = room.bluffConfig;
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
@@ -22,11 +23,11 @@ export function RuleSummaryModal({ room, onReady }: RuleSummaryModalProps) {
         {/* Title */}
         <div className="flex items-center gap-3 border-b border-white/10 pb-4">
           <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
-            {isCrazy ? <Flame size={28} /> : isT10 ? <Zap size={28} /> : <ShieldCheck size={28} />}
+            {isCrazy ? <Flame size={28} /> : isBluff ? <Sparkles size={28} /> : <ShieldCheck size={28} />}
           </div>
           <div>
             <div className="text-emerald-400 font-extrabold text-xs tracking-widest uppercase">
-              {isCrazy ? "🔥 Crazy Mode Rules" : isT10 ? "⚡ T10 Official Rules" : "🏏 Match Settings"}
+              {isCrazy ? "🔥 Crazy Mode Rules" : isBluff ? "🎭 Bluff Mode Phases" : "🏏 Match Settings"}
             </div>
             <h2 className="text-2xl font-black text-white uppercase tracking-tight">
               Pre-Match Rule Summary
@@ -50,25 +51,24 @@ export function RuleSummaryModal({ room, onReady }: RuleSummaryModalProps) {
           </div>
         </div>
 
-        {/* T10 Specific Timeline */}
-        {isT10 && (
-          <div className="bg-slate-950/60 p-4 rounded-2xl border border-amber-500/20 space-y-2">
-            <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-              <Zap size={14} /> T10 Restriction Phases
+        {/* Bluff Mode Specific Phases */}
+        {isBluff && bluffConfig && (
+          <div className="bg-slate-950/60 p-4 rounded-2xl border border-emerald-500/20 space-y-2.5">
+            <h4 className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+              <Sparkles size={14} /> Bluff Phase Restrictions (10 Overs)
             </h4>
-            <div className="space-y-1 text-xs text-slate-300 font-semibold">
-              <div className="flex justify-between">
-                <span>Overs 1 – 3 (Powerplay):</span>
-                <span className="text-amber-300 font-black">Numbers 1, 2, 3, 4</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Overs 4 – 7 (Middle Shift):</span>
-                <span className="text-amber-300 font-black">Numbers 5, 6, 7, 0</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Overs 8 – 10 (Final Assault):</span>
-                <span className="text-emerald-400 font-black">All Numbers (0-10)</span>
-              </div>
+            <div className="space-y-2 text-xs text-slate-300">
+              {bluffConfig.phases.map((phase) => (
+                <div key={phase.id} className="flex items-center justify-between bg-slate-900/80 p-2.5 rounded-xl border border-white/5">
+                  <div>
+                    <span className="font-black text-white text-xs block">{phase.name}</span>
+                    <span className="text-[10px] font-bold text-slate-400">Overs {phase.startOver} – {phase.endOver}</span>
+                  </div>
+                  <div className="flex items-center gap-1 font-mono font-black text-emerald-400 text-xs bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/30">
+                    [{phase.allowedNumbers.join(", ")}]
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

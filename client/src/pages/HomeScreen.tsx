@@ -4,8 +4,9 @@ import { LogIn, Plus, Volume2, VolumeX, ShieldAlert, Check, Flame, Zap, Settings
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
 import { CrazyRuleBuilder } from "../components/CrazyRuleBuilder";
-import { STADIUMS, DEFAULT_CRAZY_RULES } from "@hand-cricket/shared";
-import type { CrazyRulesConfig } from "@hand-cricket/shared";
+import { BluffPhaseBuilder } from "../components/BluffPhaseBuilder";
+import { STADIUMS, DEFAULT_CRAZY_RULES, DEFAULT_BLUFF_CONFIG } from "@hand-cricket/shared";
+import type { CrazyRulesConfig, BluffConfig } from "@hand-cricket/shared";
 
 export function HomeScreen({
   defaultName,
@@ -20,13 +21,14 @@ export function HomeScreen({
   error?: string;
   onCreate: (
     name: string,
-    mode: "quick" | "team" | "series" | "crazy" | "t10",
+    mode: "quick" | "team" | "series" | "crazy" | "bluff",
     maxPlayers: number,
     stadium: string,
     overs: number,
     matchType: "single" | "double",
     crazyRules?: CrazyRulesConfig,
-    subMode?: "quick" | "team" | "series" | "tournament"
+    subMode?: "quick" | "team" | "series" | "tournament",
+    bluffConfig?: BluffConfig
   ) => void;
   onJoin: (code: string, name: string) => void;
   muted: boolean;
@@ -36,7 +38,7 @@ export function HomeScreen({
   const [name, setName] = useState(defaultName);
   const [code, setCode] = useState("");
   const [showJoinForm, setShowJoinForm] = useState(false);
-  const [mode, setMode] = useState<"quick" | "team" | "series" | "crazy" | "t10">("quick");
+  const [mode, setMode] = useState<"quick" | "team" | "series" | "crazy" | "bluff">("quick");
   const [subMode, setSubMode] = useState<"quick" | "team" | "series" | "tournament">("quick");
   const [maxPlayers, setMaxPlayers] = useState(2);
   const [stadium, setStadium] = useState<string>("hpca");
@@ -46,6 +48,10 @@ export function HomeScreen({
   // Crazy Rules Configuration State
   const [crazyRules, setCrazyRules] = useState<CrazyRulesConfig>(DEFAULT_CRAZY_RULES);
   const [showCrazyBuilder, setShowCrazyBuilder] = useState(false);
+
+  // Bluff Mode Configuration State
+  const [bluffConfig, setBluffConfig] = useState<BluffConfig>(DEFAULT_BLUFF_CONFIG);
+  const [showBluffBuilder, setShowBluffBuilder] = useState(false);
 
   // Desktop mouse parallax effect for ambient lighting
   const [parallaxOffset, setParallaxOffset] = useState({ x: 0, y: 0 });
@@ -63,13 +69,13 @@ export function HomeScreen({
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  const handleModeChange = (newMode: "quick" | "team" | "series" | "crazy" | "t10") => {
+  const handleModeChange = (newMode: "quick" | "team" | "series" | "crazy" | "bluff") => {
     setMode(newMode);
-    if (newMode === "t10") {
+    if (newMode === "bluff") {
       setOvers(10);
     } else if (newMode === "quick") {
       setMaxPlayers(2);
-      if (overs === 10 && mode === "t10") setOvers(5);
+      if (overs === 10 && mode === "bluff") setOvers(5);
     } else if (newMode === "series" && maxPlayers < 4) {
       setMaxPlayers(4);
     } else if (newMode === "team" && maxPlayers === 2) {
@@ -250,7 +256,7 @@ export function HomeScreen({
                     { id: "team", label: "Team", icon: "👥", desc: "Team Battle" },
                     { id: "series", label: "Series", icon: "🏆", desc: "League Cup" },
                     { id: "crazy", label: "Crazy", icon: "🔥", desc: "Crazy Rules" },
-                    { id: "t10", label: "T10", icon: "⚡", desc: "Restricted" }
+                    { id: "bluff", label: "Bluff", icon: "🎭", desc: "Phase Shift" }
                   ].map((item) => (
                     <button
                       key={item.id}
@@ -288,8 +294,29 @@ export function HomeScreen({
                   </div>
                 )}
 
-                {/* Sub-Mode Selection for Crazy or T10 */}
-                {(mode === "crazy" || mode === "t10") && (
+                {/* Bluff Mode Builder Button */}
+                {mode === "bluff" && (
+                  <div className="mb-4 p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-black text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                        🎭 Bluff Phases Configured
+                      </span>
+                      <span className="text-[10px] font-medium text-slate-400 block mt-0.5">
+                        {bluffConfig.phases.length} Phases • 10 Overs Fixed
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowBluffBuilder(true)}
+                      className="px-3.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/50 text-emerald-300 text-xs font-black uppercase transition-all flex items-center gap-1.5 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                    >
+                      <Settings size={13} /> Configure
+                    </button>
+                  </div>
+                )}
+
+                {/* Sub-Mode Selection for Crazy or Bluff */}
+                {(mode === "crazy" || mode === "bluff") && (
                   <div className="mb-4">
                     <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
                       Execution Format
@@ -351,7 +378,7 @@ export function HomeScreen({
                     Match Overs Selection
                   </span>
                   <span className="text-[10px] font-bold text-slate-400 lowercase italic">
-                    {mode === "t10" ? "(Fixed at 10 Overs for T10)" : "(1 - 50 overs)"}
+                    {mode === "bluff" ? "(Fixed at 10 Overs for Bluff)" : "(1 - 50 overs)"}
                   </span>
                 </label>
                 <div className="flex items-center gap-3 mb-4">
@@ -360,7 +387,7 @@ export function HomeScreen({
                     min={1}
                     max={50}
                     step={1}
-                    disabled={mode === "t10"}
+                    disabled={mode === "bluff"}
                     value={overs === 0 ? "" : overs}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -373,17 +400,17 @@ export function HomeScreen({
                       setOvers(parsed);
                     }}
                     className={`w-28 rounded-2xl border px-4 py-2.5 text-center font-black text-white bg-slate-950/90 outline-none transition-all duration-200 ${
-                      mode === "t10"
-                        ? "border-amber-500/40 text-amber-300 font-extrabold cursor-not-allowed"
+                      mode === "bluff"
+                        ? "border-emerald-500/40 text-emerald-300 font-extrabold cursor-not-allowed"
                         : (overs < 1 || overs > 50 || !Number.isInteger(overs))
                         ? "border-red-500/50 focus:border-red-500 focus:shadow-[0_0_15px_rgba(239,68,68,0.25)]"
                         : "border-white/15 focus:border-emerald-400 focus:shadow-[0_0_15px_rgba(16,185,129,0.25)]"
                     }`}
                   />
                   <span className={`text-xs font-black uppercase tracking-wider ${
-                    mode === "t10" ? "text-amber-400" : (overs < 1 || overs > 50 || !Number.isInteger(overs)) ? "text-red-400" : "text-emerald-400"
+                    mode === "bluff" ? "text-emerald-400" : (overs < 1 || overs > 50 || !Number.isInteger(overs)) ? "text-red-400" : "text-emerald-400"
                   }`}>
-                    {mode === "t10" ? "⚡ Fixed 10 Overs" : overs === 1 ? "1 Over" : (overs >= 1 && overs <= 50 && Number.isInteger(overs)) ? `${overs} Overs` : "Invalid Overs"}
+                    {mode === "bluff" ? "🎭 Fixed 10 Overs" : overs === 1 ? "1 Over" : (overs >= 1 && overs <= 50 && Number.isInteger(overs)) ? `${overs} Overs` : "Invalid Overs"}
                   </span>
                 </div>
 
@@ -493,10 +520,11 @@ export function HomeScreen({
                       mode,
                       maxPlayers,
                       stadium,
-                      mode === "t10" ? 10 : overs,
+                      mode === "bluff" ? 10 : overs,
                       matchType,
                       mode === "crazy" ? crazyRules : undefined,
-                      (mode === "crazy" || mode === "t10") ? subMode : undefined
+                      (mode === "crazy" || mode === "bluff") ? subMode : undefined,
+                      mode === "bluff" ? bluffConfig : undefined
                     )
                   }
                   variant="primary"
@@ -568,6 +596,24 @@ export function HomeScreen({
             )}
           </motion.div>
         </div>
+
+        {/* Crazy Rule Builder Modal */}
+        {showCrazyBuilder && (
+          <CrazyRuleBuilder
+            initialRules={crazyRules}
+            onSave={(rules) => setCrazyRules(rules)}
+            onClose={() => setShowCrazyBuilder(false)}
+          />
+        )}
+
+        {/* Bluff Phase Builder Modal */}
+        {showBluffBuilder && (
+          <BluffPhaseBuilder
+            initialConfig={bluffConfig}
+            onSave={(cfg) => setBluffConfig(cfg)}
+            onClose={() => setShowBluffBuilder(false)}
+          />
+        )}
 
         {/* Footer */}
         <footer className="relative z-10 w-full max-w-6xl mx-auto text-center pt-6">

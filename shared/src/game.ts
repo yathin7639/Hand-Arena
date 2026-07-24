@@ -8,6 +8,7 @@ export type PlayerSlot = string;
 export type ReadyStatus = "idle" | "ready";
 
 import type { CrazyRulesConfig, CrazyBallState } from "./models/crazyRules.js";
+import type { BluffConfig, BluffPhase } from "./models/bluffMode.js";
 
 export type RoomPhase =
   | "lobby"
@@ -98,6 +99,8 @@ export interface MatchView {
   teamBPlayerIds?: string[];
   crazyState?: CrazyBallState;
   isT10?: boolean;
+  isBluff?: boolean;
+  bluffConfig?: BluffConfig;
   currentOverAllowedNumbers?: HandNumber[];
 }
 
@@ -109,11 +112,12 @@ export interface MatchSummary {
   scores: Record<string, InningsScore>; // mapped by team ID or team key
   crazyHighlights?: string[];
   t10Timeline?: string[];
+  bluffTimeline?: string[];
 }
 
 export interface RoomView {
   code: string;
-  mode: "quick" | "team" | "series" | "crazy" | "t10";
+  mode: "quick" | "team" | "series" | "crazy" | "bluff";
   subMode?: "quick" | "team" | "series" | "tournament";
   phase: RoomPhase;
   players: PlayerView[];
@@ -137,6 +141,7 @@ export interface RoomView {
   substituteStates?: Record<string, SubstituteState>;
   matchHistory?: MatchHistoryItem[];
   crazyRules?: CrazyRulesConfig;
+  bluffConfig?: BluffConfig;
   ruleSummaryReadyIds?: string[];
 }
 
@@ -146,7 +151,7 @@ export interface MatchHistoryItem {
   stadium: string;
   overs: number;
   matchType: "single" | "double";
-  mode: "quick" | "team" | "series" | "crazy" | "t10";
+  mode: "quick" | "team" | "series" | "crazy" | "bluff";
   teamA: {
     id: string;
     name: string;

@@ -347,9 +347,9 @@ export function MatchScorecard({
         </div>
       )}
 
-      {/* Crazy Highlights & T10 Timeline */}
-      {((summary.crazyHighlights && summary.crazyHighlights.length > 0) || (summary.t10Timeline && summary.t10Timeline.length > 0)) && (
-        <div className="bg-slate-900/90 backdrop-blur-md border border-amber-500/20 rounded-3xl p-6 shadow-xl text-left space-y-4">
+      {/* Crazy Highlights & Bluff Timeline */}
+      {((summary.crazyHighlights && summary.crazyHighlights.length > 0) || (summary.bluffTimeline && summary.bluffTimeline.length > 0) || (summary.t10Timeline && summary.t10Timeline.length > 0)) && (
+        <div className="bg-slate-900/90 backdrop-blur-md border border-emerald-500/20 rounded-3xl p-6 shadow-xl text-left space-y-4">
           {summary.crazyHighlights && summary.crazyHighlights.length > 0 && (
             <div>
               <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 mb-2 flex items-center gap-1.5">
@@ -365,15 +365,15 @@ export function MatchScorecard({
             </div>
           )}
 
-          {summary.t10Timeline && summary.t10Timeline.length > 0 && (
+          {(summary.bluffTimeline || summary.t10Timeline) && (
             <div>
-              <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 mb-2 flex items-center gap-1.5">
-                ⚡ T10 Phase Timeline
+              <h4 className="text-xs font-black uppercase tracking-wider text-emerald-400 mb-2 flex items-center gap-1.5">
+                🎭 Bluff Phase Timeline
               </h4>
               <div className="space-y-1 text-xs font-medium text-slate-300">
-                {summary.t10Timeline.map((t, idx) => (
+                {(summary.bluffTimeline || summary.t10Timeline)?.map((t, idx) => (
                   <div key={idx} className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                     <span>{t}</span>
                   </div>
                 ))}

@@ -10,12 +10,13 @@ import type {
   InningsNumber,
   CrazyRulesConfig,
   CrazyBallState,
-  MysteryEventType
+  MysteryEventType,
+  BluffConfig
 } from "@hand-cricket/shared";
 import {
   getRandomCommentary,
-  getT10AllowedNumbers,
-  getMirroredNumber
+  getMirroredNumber,
+  getBluffActivePhase
 } from "@hand-cricket/shared";
 import type { BallEvent } from "@hand-cricket/shared";
 
@@ -50,9 +51,11 @@ export class MatchEngine {
   // V2 Extensions
   private crazyRules?: CrazyRulesConfig;
   private isT10: boolean = false;
+  private bluffConfig?: BluffConfig;
   private crazyState: CrazyBallState = {};
   private crazyHighlights: string[] = [];
   private t10Timeline: string[] = [];
+  private bluffTimeline: string[] = [];
 
   // Match Timeline
   public timeline: BallEvent[] = [];
@@ -68,9 +71,11 @@ export class MatchEngine {
     matchType: "single" | "double" = "single",
     jokerPlayerId: string | null = null,
     crazyRules?: CrazyRulesConfig,
-    isT10: boolean = false
+    isT10: boolean = false,
+    bluffConfig?: BluffConfig
   ) {
-    this.overs = isT10 ? 10 : overs;
+    this.bluffConfig = bluffConfig;
+    this.overs = (isT10 || bluffConfig) ? 10 : overs;
     this.matchType = matchType;
     this.teamAPlayerIds = teamAPlayerIds;
     this.teamBPlayerIds = teamBPlayerIds;
@@ -104,8 +109,12 @@ export class MatchEngine {
 
   public getCurrentAllowedNumbers(): HandNumber[] {
     const overOneBased = Math.floor(this.current.balls / 6) + 1;
-    if (this.isT10) {
-      return getT10AllowedNumbers(overOneBased);
+
+    if (this.bluffConfig && this.bluffConfig.phases.length > 0) {
+      const activePhase = getBluffActivePhase(this.bluffConfig.phases, overOneBased);
+      if (activePhase && activePhase.allowedNumbers.length > 0) {
+        return activePhase.allowedNumbers;
+      }
     }
 
     if (this.crazyRules) {
@@ -141,10 +150,13 @@ export class MatchEngine {
     const overIndex = Math.floor(this.current.balls / 6);
     const overOneBased = overIndex + 1;
 
-    if (this.isT10) {
-      const phaseMsg = `T10 Phase: Overs ${overOneBased <= 3 ? "1-3 (1,2,3,4)" : overOneBased <= 7 ? "4-7 (5,6,7,0)" : "8-10 (All)"}`;
-      if (!this.t10Timeline.includes(phaseMsg)) {
-        this.t10Timeline.push(phaseMsg);
+    if (this.bluffConfig) {
+      const activePhase = getBluffActivePhase(this.bluffConfig.phases, overOneBased);
+      if (activePhase) {
+        const phaseMsg = `Bluff Phase: ${activePhase.name} (Overs ${activePhase.startOver}-${activePhase.endOver}) - Allowed: [${activePhase.allowedNumbers.join(", ")}]`;
+        if (!this.bluffTimeline.includes(phaseMsg)) {
+          this.bluffTimeline.push(phaseMsg);
+        }
       }
     }
 
@@ -604,7 +616,8 @@ export class MatchEngine {
         [secondTeamId]: { runs: totalSecond, wickets: wicketsSecond, balls: ballsSecond }
       },
       crazyHighlights: this.crazyHighlights.length > 0 ? this.crazyHighlights : undefined,
-      t10Timeline: this.t10Timeline.length > 0 ? this.t10Timeline : undefined
+      t10Timeline: this.t10Timeline.length > 0 ? this.t10Timeline : undefined,
+      bluffTimeline: this.bluffTimeline.length > 0 ? this.bluffTimeline : undefined
     };
   }
 
@@ -633,6 +646,8 @@ export class MatchEngine {
       teamBPlayerIds: this.teamBPlayerIds,
       crazyState: this.crazyState,
       isT10: this.isT10,
+      isBluff: !!this.bluffConfig,
+      bluffConfig: this.bluffConfig,
       currentOverAllowedNumbers: this.getCurrentAllowedNumbers()
     };
   }
@@ -695,9 +710,11 @@ export class MatchEngine {
       timeline: this.timeline,
       crazyRules: this.crazyRules,
       isT10: this.isT10,
+      bluffConfig: this.bluffConfig,
       crazyState: this.crazyState,
       crazyHighlights: this.crazyHighlights,
-      t10Timeline: this.t10Timeline
+      t10Timeline: this.t10Timeline,
+      bluffTimeline: this.bluffTimeline
     };
   }
 

@@ -1,4 +1,4 @@
-import type { RoomView, CrazyRulesConfig } from "@hand-cricket/shared";
+import type { RoomView, CrazyRulesConfig, BluffConfig } from "@hand-cricket/shared";
 import { Room } from "./Room.js";
 import { FileRoomStore, type IRoomStore } from "../services/RoomStore.js";
 import { logger } from "../utils/logger.js";
@@ -16,16 +16,17 @@ export class GameManager {
     playerId: string,
     name: string,
     socketId: string,
-    mode: "quick" | "team" | "series" | "crazy" | "t10",
+    mode: "quick" | "team" | "series" | "crazy" | "bluff",
     maxPlayers: number,
     stadium: string,
     overs: number = 5,
     matchType: "single" | "double" = "single",
     crazyRules?: CrazyRulesConfig,
-    subMode?: "quick" | "team" | "series" | "tournament"
+    subMode?: "quick" | "team" | "series" | "tournament",
+    bluffConfig?: BluffConfig
   ): Room {
     const code = this.generateCode();
-    const room = new Room(code, { id: playerId, name, socketId }, mode, maxPlayers, stadium, overs, matchType, crazyRules, subMode);
+    const room = new Room(code, { id: playerId, name, socketId }, mode, maxPlayers, stadium, overs, matchType, crazyRules, subMode, bluffConfig);
     this.roomStore.set(code, room);
     this.saveState();
     logger.info("GameManager", `Room created: ${code} by player ${playerId}`);

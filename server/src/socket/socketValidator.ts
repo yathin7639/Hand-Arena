@@ -3,13 +3,14 @@ import type { HandNumber, PlayerTeam, TossSide, BatBowlChoice } from "@hand-cric
 export function validateCreateRoomPayload(payload: unknown): {
   playerId: string;
   name: string;
-  mode: "quick" | "team" | "series" | "crazy" | "t10";
+  mode: "quick" | "team" | "series" | "crazy" | "bluff";
   maxPlayers: number;
   stadium: string;
   overs: number;
   matchType: "single" | "double";
   crazyRules?: any;
   subMode?: any;
+  bluffConfig?: any;
 } {
   if (!payload || typeof payload !== "object") {
     throw new Error("Invalid payload structure");
@@ -24,7 +25,7 @@ export function validateCreateRoomPayload(payload: unknown): {
     throw new Error("Invalid or missing name");
   }
 
-  const validModes = ["quick", "team", "series", "crazy", "t10"];
+  const validModes = ["quick", "team", "series", "crazy", "bluff"];
   if (!validModes.includes(p.mode)) {
     throw new Error("Invalid game mode");
   }
@@ -54,7 +55,8 @@ export function validateCreateRoomPayload(payload: unknown): {
     overs,
     matchType,
     crazyRules: p.crazyRules,
-    subMode: p.subMode
+    subMode: p.subMode,
+    bluffConfig: p.bluffConfig
   };
 }
 

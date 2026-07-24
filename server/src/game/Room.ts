@@ -16,8 +16,10 @@ import type {
   ChatMessage,
   SubstituteState,
   MatchHistoryItem,
-  CrazyRulesConfig
+  CrazyRulesConfig,
+  BluffConfig
 } from "@hand-cricket/shared";
+import { DEFAULT_BLUFF_CONFIG } from "@hand-cricket/shared";
 import type { ServerPlayer } from "../types/runtime.js";
 import { MatchEngine } from "./MatchEngine.js";
 import { TournamentEngine } from "./TournamentEngine.js";
@@ -47,9 +49,10 @@ export class Room {
   private hostId: string;
   private players = new Map<string, ServerPlayer>();
   private phase: RoomPhase = "lobby";
-  private mode: "quick" | "team" | "series" | "crazy" | "t10";
+  private mode: "quick" | "team" | "series" | "crazy" | "bluff";
   private subMode?: "quick" | "team" | "series" | "tournament";
   private crazyRules?: CrazyRulesConfig;
+  private bluffConfig?: BluffConfig;
   private toss: RoomView["toss"] = {};
   private match?: MatchEngine;
   private tournament?: TournamentEngine;
@@ -100,22 +103,24 @@ export class Room {
   constructor(
     code: string,
     host: Omit<ServerPlayer, "slot" | "connected" | "ready" | "team" | "isCaptain">,
-    mode: "quick" | "team" | "series" | "crazy" | "t10",
+    mode: "quick" | "team" | "series" | "crazy" | "bluff",
     maxPlayers: number,
     stadium: string,
     overs: number = 5,
     matchType: "single" | "double" = "single",
     crazyRules?: CrazyRulesConfig,
-    subMode?: "quick" | "team" | "series" | "tournament"
+    subMode?: "quick" | "team" | "series" | "tournament",
+    bluffConfig?: BluffConfig
   ) {
     this.code = code;
     this.hostId = host.id;
     this.mode = mode;
     this.subMode = subMode;
     this.crazyRules = crazyRules;
+    this.bluffConfig = mode === "bluff" ? (bluffConfig || DEFAULT_BLUFF_CONFIG) : bluffConfig;
     this.maxPlayers = maxPlayers;
     this.stadium = stadium;
-    this.overs = mode === "t10" ? 10 : overs;
+    this.overs = mode === "bluff" ? 10 : overs;
     this.matchType = mode === "series" ? "single" : matchType;
     this.addPlayer(host);
   }
@@ -265,7 +270,7 @@ export class Room {
     this.validateState("Remove Player");
   }
 
-  setRoomMode(playerId: string, mode: "quick" | "team" | "series" | "crazy" | "t10"): void {
+  setRoomMode(playerId: string, mode: "quick" | "team" | "series" | "crazy" | "bluff"): void {
     throw new Error("Lobby settings are locked after room creation.");
   }
 
@@ -1000,7 +1005,8 @@ export class Room {
         this.matchType,
         this.jokerPlayerId,
         this.crazyRules,
-        this.mode === "t10"
+        false,
+        this.bluffConfig
       );
       this.phase = "select-batsman";
       return;
@@ -1603,7 +1609,8 @@ export class Room {
       jokerPlayerId: this.jokerPlayerId,
       disconnectTimes: Object.fromEntries(this.disconnectTimes),
       substituteStates: Object.fromEntries(this.substituteStates),
-      matchHistory: this.matchHistory
+      matchHistory: this.matchHistory,
+      bluffConfig: this.bluffConfig
     };
   }
 
@@ -1980,6 +1987,7 @@ export class Room {
       mode: this.mode,
       subMode: this.subMode,
       crazyRules: this.crazyRules,
+      bluffConfig: this.bluffConfig,
       toss: this.toss,
       match: this.match ? this.match.toJSON() : undefined,
       tournament: this.tournament ? this.tournament.toJSON() : undefined,

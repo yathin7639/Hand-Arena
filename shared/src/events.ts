@@ -7,17 +7,19 @@ export interface ServerAck<T = unknown> {
 }
 
 import type { CrazyRulesConfig } from "./models/crazyRules.js";
+import type { BluffConfig } from "./models/bluffMode.js";
 
 export interface CreateRoomPayload {
   playerId: string;
   name: string;
-  mode: "quick" | "team" | "series" | "crazy" | "t10";
+  mode: "quick" | "team" | "series" | "crazy" | "bluff";
   subMode?: "quick" | "team" | "series" | "tournament";
   maxPlayers: number;
   stadium: string;
   overs: number;
   matchType: "single" | "double";
   crazyRules?: CrazyRulesConfig;
+  bluffConfig?: BluffConfig;
 }
 
 export interface JoinRoomPayload {
@@ -83,7 +85,7 @@ export interface KickPlayerPayload extends RoomActionPayload {
 }
 
 export interface SetRoomModePayload extends RoomActionPayload {
-  mode: "quick" | "team" | "series" | "crazy" | "t10";
+  mode: "quick" | "team" | "series" | "crazy" | "bluff";
   subMode?: "quick" | "team" | "series" | "tournament";
 }
 

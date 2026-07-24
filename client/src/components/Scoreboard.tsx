@@ -1,6 +1,6 @@
 import type { RoomView, PlayerTeam } from "@hand-cricket/shared";
-import { getT10PhaseInfo } from "@hand-cricket/shared";
-import { Flame, Zap, ShieldCheck } from "lucide-react";
+import { getBluffActivePhase } from "@hand-cricket/shared";
+import { Flame, Sparkles, ShieldCheck } from "lucide-react";
 
 const nameFor = (room: RoomView, id?: string) =>
   room.players.find((player) => player.id === id)?.name ?? "—";
@@ -10,12 +10,15 @@ export function Scoreboard({ room }: { room: RoomView }) {
   if (!match) return null;
 
   const isCrazy = room.mode === "crazy";
-  const isT10 = room.mode === "t10" || match.isT10;
+  const isBluff = room.mode === "bluff" || match.isBluff;
   const crazyState = match.crazyState;
   const crazyRules = room.crazyRules;
+  const bluffConfig = room.bluffConfig || match.bluffConfig;
 
   const currentOverOneBased = Math.floor(match.current.balls / 6) + 1;
-  const t10Phase = isT10 ? getT10PhaseInfo(currentOverOneBased) : null;
+  const activeBluffPhase = isBluff && bluffConfig?.phases
+    ? getBluffActivePhase(bluffConfig.phases, currentOverOneBased)
+    : null;
 
   const getTeamName = (teamLetter: PlayerTeam) => {
     if (teamLetter === "spectator") return "Spectators";
@@ -88,11 +91,11 @@ export function Scoreboard({ room }: { room: RoomView }) {
         )}
 
         {/* Mode Indicators & Active Rule Badges */}
-        {(isT10 || isCrazy) && (
+        {(isBluff || isCrazy) && (
           <div className="mt-3 pt-3 border-t border-white/10 flex flex-wrap items-center justify-center gap-2 text-xs">
-            {isT10 && t10Phase && (
-              <span className="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-black uppercase flex items-center gap-1 shadow-md">
-                <Zap size={12} /> {t10Phase.phaseName} (Allowed: {t10Phase.allowedNumbers.join(", ")})
+            {isBluff && activeBluffPhase && (
+              <span className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-black uppercase flex items-center gap-1 shadow-md">
+                <Sparkles size={12} /> {activeBluffPhase.name} (Overs {activeBluffPhase.startOver}-{activeBluffPhase.endOver}) • Allowed: [{activeBluffPhase.allowedNumbers.join(", ")}]
               </span>
             )}
             {isCrazy && (

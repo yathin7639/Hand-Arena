@@ -37,7 +37,8 @@ export class SocketController {
           payload.overs,
           payload.matchType,
           payload.crazyRules,
-          payload.subMode
+          payload.subMode,
+          payload.bluffConfig
         );
         socket.join(room.code);
         logger.info("Socket", `Room created: ${room.code} by player: ${payload.playerId}`);

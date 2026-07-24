@@ -175,13 +175,14 @@ export function useSocketGame() {
       },
       createRoom: async (
         name: string,
-        mode: "quick" | "team" | "series" | "crazy" | "t10",
+        mode: "quick" | "team" | "series" | "crazy" | "bluff",
         maxPlayers: number,
         stadium: string,
         overs: number,
         matchType: "single" | "double",
         crazyRules?: any,
-        subMode?: any
+        subMode?: any,
+        bluffConfig?: any
       ) => {
         const result = await ack<{ room: RoomView; session: ClientSession; chatHistory: ChatMessage[] }>("createRoom", {
           playerId: session.playerId,
@@ -192,7 +193,8 @@ export function useSocketGame() {
           overs,
           matchType,
           crazyRules,
-          subMode
+          subMode,
+          bluffConfig
         });
         updateSession(result.session);
         setRoom(result.room);
