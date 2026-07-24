@@ -11,6 +11,7 @@ import type {
   ChatMessage
 } from "@hand-cricket/shared";
 import { loadSession, saveSession } from "../lib/session";
+import { SOCKET_URL } from "../config";
 
 interface GameSocket {
   connected: boolean;
@@ -20,7 +21,18 @@ interface GameSocket {
 }
 
 export function useSocketGame() {
-  const [socket] = useState<GameSocket>(() => io({ autoConnect: true }) as unknown as GameSocket);
+  const [socket] = useState<GameSocket>(
+    () =>
+      io(SOCKET_URL, {
+        autoConnect: true,
+        transports: ["websocket", "polling"],
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        timeout: 20000
+      }) as unknown as GameSocket
+  );
   const [session, setSession] = useState<ClientSession>(() => loadSession());
   const [room, setRoom] = useState<RoomView>();
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);

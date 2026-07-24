@@ -22,8 +22,12 @@ export function isOriginAllowed(origin: string | undefined, hostHeader?: string 
     return true;
   }
 
-  // Allow Cloudflare Tunnel domains
-  if (origin.endsWith(".trycloudflare.com")) {
+  // Allow Cloudflare Tunnel, Workers, & Pages domains
+  if (
+    origin.endsWith(".trycloudflare.com") ||
+    origin.endsWith(".workers.dev") ||
+    origin.endsWith(".pages.dev")
+  ) {
     return true;
   }
 
